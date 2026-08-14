@@ -1,2 +1,0 @@
-t = "uio"
-print(t)
