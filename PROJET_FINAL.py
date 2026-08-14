@@ -1,12 +1,4 @@
-ma_liste = [
-  {"salle": "Salle A", "date": "2026-08-10", "debut": 540, "fin": 600, "responsable": "Awa", "objet": "Reunion equipe", "places":"6"},
-  {"salle": "Salle A", "date": "2026-08-10", "debut": 840, "fin": 900, "responsable": "Karim ", "objet": "Point client ACME", "places":"6"},
-  {"salle": "Salle B", "date": "2026-08-10", "debut": 600, "fin": 720, "responsable": "Lea", "objet": "Atelier produit", "places":"12"},
-  {"salle": "Salle B", "date": "2026-08-10", "debut": 900, "fin": 960, "responsable": "Awa", "objet": "Entretien recrutement", "places":"12"},
-  {"salle": "Salle C", "date": "2026-08-10", "debut": 780, "fin": 840, "responsable": "Tom", "objet": "Appel visio fournisseur", "places":"4"},
-  {"salle": "Salle A", "date": "2026-08-11", "debut": 600, "fin": 660, "responsable": "Lea", "objet": "Comite hebdo", "places":"6"}
-]           
-           
+
 import json
 import os 
  
@@ -22,12 +14,13 @@ def charger():
             ma_liste = json.load(fichier)         
            
             # __________LISTE__DES__SALLES__________
-salles_dispo = {}
 debut = int()
 fin = int()
 salle = ""
-def salles_disponibles():  
-    
+salles_dispo = {}
+def salles_disponibles():
+    global salles_dispo
+    salles_dispo = {} 
     print()
     print("_-_-_-_SALLES DISPONIBLES_-_-_-_")
     print()
@@ -35,14 +28,15 @@ def salles_disponibles():
     if ma_liste == []:
         print()
     for liste in ma_liste:
-        if liste["salle"] not in salles_dispo:
-            salles_dispo[liste["salle"]] = liste["salle"]
-            print(f"{liste["salle"]}: {liste["places"]} places")
-    return salles_dispo
-print()
+        if liste['salle'] not in salles_dispo:
+            salles_dispo[liste['salle']] = liste['salle']
+            print(f"{liste['salle']}: {liste['places']} places")
+    print()
 
 def faire_une_reservation():
+    global date_saisie
     print("-_-_-_-_-_-_-_FAIRE_UNE_RESERVATION_-_-_-_-_-_-_-_-")
+    print()
     reservation = {}
     
 #                     # ___________CHOISIR_UNE_SALLE__________        
@@ -55,11 +49,11 @@ def faire_une_reservation():
             print("Vous devez choisir une salle")
         else:
             if salle in salles_dispo:
-                reservation["salle"] = salle
+                reservation['salle'] = salle
                 break
             else:
                 print("salle inexistante")
-                print(salle)
+                print()
                 
 #                  # __________DATE_________
 
@@ -76,7 +70,7 @@ def faire_une_reservation():
                 break
         except ValueError:
             print("Format incorrect. Utilisez le format AAAA-MM-JJ.")
-    reservation["date"] = date_saisie.strftime("%Y-%m-%d")
+    reservation['date'] = date_saisie.strftime("%Y-%m-%d")
     # print(f"Date enrégistrée: {reservation["date"]}")
     print()
     
@@ -94,7 +88,7 @@ def faire_une_reservation():
     h = heure_saisie.hour
     m = heure_saisie.minute
     debut = h*60 + m
-    reservation["debut"] = debut
+    reservation['debut'] = debut
     print()
 
 
@@ -115,7 +109,7 @@ def faire_une_reservation():
         except ValueError:
             print("Format incorrecte. Veuillez réessayer")
 
-    reservation["fin"] = fin
+    reservation['fin'] = fin
     print()
 
 
@@ -130,7 +124,7 @@ def faire_une_reservation():
             print("le nom ne peut pas contenir d'entier")
         else:
             break
-    reservation["responsable"] = responsable
+    reservation['responsable'] = responsable
     print()
 
  #           # __________OBJET_________
@@ -143,32 +137,49 @@ def faire_une_reservation():
             print("L'objet ne peut pas contenir d'entier")
         else:
             break
-    reservation["objet"] = objet
-    print("____ENREGISTREE____")
+    reservation['objet'] = objet
     print()
-    ma_liste.append(reservation)
+    conflit = cas_de_conflit(salle, date_saisie, debut, fin)
+    if not conflit:
+        ma_liste.append(reservation)
+        print("____ENREGISTREE____")
+        print()
+    else:
+        print("Réservation non enregistré à cause du conflit")
+        print()
     return salle, date_saisie, debut, fin, reservation
-
 
        #    _________CAS_DE_CONFLIT_______
        
-def cas_de_conflit():
+def cas_de_conflit(salle, date_saisie, debut, fin):
     conflit = False
     from datetime import datetime
     
     for liste in ma_liste:
-        date_liste = datetime.strptime(liste["date"], "%Y-%m-%d").date()
-        if liste["salle"].lower() == salle.lower() and date_liste == date_saisie:
-            if debut < liste["fin"] and liste["debut"] < fin:
+        date_liste = datetime.strptime(liste['date'], "%Y-%m-%d").date()
+        if liste['salle'].lower() == salle.lower() and date_liste == date_saisie:
+            if debut < liste['fin'] and liste['debut'] < fin:
                 conflit = True
 
     if conflit == True:
         print("Risque de conflit. Veuillez choisir une autre horaire")
         print()
-    if conflit:
-        print("rien à signaler")
     return conflit
 
+def detection_de_conflit():
+    print("-------DETECTION_DE_CONFLIT--------")
+    salle = input("Choisissez votre salle: ").strip()
+    date_saisie = input("Entrez la date (AAAA-MM-JJ): ").strip()
+    debut = input("Entrez l'heure de début (HH:MM): ").strip()
+    fin = input("Entrez l'heure de fin (HH:MM): ").strip()
+    from datetime import datetime
+    date_saisie = datetime.strptime(date_saisie, "%Y-%m-%d").date()
+    heure_debut = datetime.strptime(debut, "%H:%M").time()
+    debut = heure_debut.hour * 60 + heure_debut.minute
+    heure_fin = datetime.strptime(fin, "%H:%M").time()
+    fin = heure_fin.hour * 60 + heure_fin.minute
+    
+    cas_de_conflit(salle, date_saisie, debut, fin)
 
                     #__________PLANNING__________
                     
@@ -184,9 +195,11 @@ def voir_le_planning():
             print("Vous devez choisir une salle")
         elif salle.isdigit():
             print("La salle ne peut pas être un entier")
-        elif salle in salles_dispo:
+        elif salle:
             break
-        elif salle not in salles_dispo:
+        if salle in salles_dispo:
+            break
+        else:
             print("Salle inexistante")
             
     from datetime import datetime
@@ -198,15 +211,17 @@ def voir_le_planning():
             break
         except ValueError:
             print("Format incorrect. Utilisez le format AAAA-MM-JJ.")
-    
+    compteur = 0
     for liste in ma_liste:
-        date_liste = datetime.strptime(liste["date"], "%Y-%m-%d").date()
+        date_liste = datetime.strptime(liste['date'], "%Y-%m-%d").date()
 
-        if liste["salle"] == salle and date_liste == date_saisie:
+        if liste['salle'] == salle and date_liste == date_saisie:
+            compteur =+ 1
             print(liste)
         else:
             continue
-print("INEXISTANT")
+    if compteur == 0:
+        print("INEXISTANT")
 
                         #__________CRENAUX_LIBRES_______
     
@@ -224,7 +239,7 @@ def afficher_creneaux_libres():
     print()
     from datetime import datetime, date
     while True:
-        saisie = input("Entrez la date de votre réservation en suivant ce modèle (AAAA-MM-JJ): ").strip()
+        saisie = input("Entrez la date de la réservation en suivant ce modèle (AAAA-MM-JJ): ").strip()
         try:
             date_saisie = datetime.strptime(saisie, "%Y-%m-%d").date()
             break
@@ -233,36 +248,32 @@ def afficher_creneaux_libres():
             
     reservations = []
     
-    # On récupère les réservations de la salle et de la date choisies
     for reservation in ma_liste:
-        date_reservation = datetime.strptime(reservation["date"], "%Y-%m-%d").date()
-        if date_reservation == date_saisie and reservation["salle"].lower() == salle.lower():
+        date_reservation = datetime.strptime(reservation['date'], "%Y-%m-%d").date()
+        if date_reservation == date_saisie and reservation['salle'].lower() == salle.lower():
             reservations.append(reservation)
 
     if not reservations:
         print("Aucune réservation. La salle est libre de 08h00 à 18h00.")
         return
 
-    # Tri des réservations par heure de début
     reservations.sort(key=lambda x: x["debut"])
 
     ouverture = 480 
     fermeture = 1080
     debut_creneau = ouverture
 
-    print(f"Créneaux libres pour {salle} le {date} :")
+    print(f"Créneaux libres pour {salle} le {date_saisie} :")
 
     for reservation in reservations:
-        if debut_creneau < reservation["debut"]:
-            print(f"{debut_creneau} à {reservation['debut']}")
-        debut_creneau = reservation["fin"]
+        if debut_creneau < reservation['debut']:
+            
+            print(f"{debut_creneau / 60}h à {reservation['debut'] / 60}h")
+        debut_creneau = reservation['fin']
         
     if debut_creneau < fermeture:
-        print(f"{debut_creneau} à {fermeture}")
-
-
-                    # ________ANNULER_UNE_RESERVATION_________
-                    
+        print(f"{debut_creneau / 60}h à {fermeture / 60}h")
+print()
 
 def annuler_une_reservation():
     while True:
@@ -319,8 +330,8 @@ def annuler_une_reservation():
         
     trouve = False
     for reservation in ma_liste:
-        date_reservation = datetime.strptime(reservation["date"], "%Y-%m-%d").date()
-        if reservation["salle"] == salle and date_reservation == date_saisie and reservation["debut"] == debut and reservation["fin"] == fin:
+        date_reservation = datetime.strptime(reservation['date'], "%Y-%m-%d").date()
+        if reservation['salle'] == salle and date_reservation == date_saisie and reservation['debut'] == debut and reservation['fin'] == fin:
             trouve = True
             print(reservation)
             a_supprimer = reservation
@@ -342,24 +353,31 @@ def annuler_une_reservation():
 
                         # __________MENU__________
 if __name__=="__main__":
+    def sauvegarder():
+        with open("reservations.json", "w", encoding="utf-8") as fichier:
+            json.dump(ma_liste, fichier, indent = 4, ensure_ascii = False)
+            print("Sauvegarde effectuée.")
+
+    def charger():
+        global ma_liste
+        if os.path.exists("reservations.json"):
+            with open("reservations.json", "r", encoding="utf-8") as fichier:
+                ma_liste = json.load(fichier)
     charger()
-    
-    for liste in ma_liste:
-        if liste["salle"] not in salles_dispo:
-            salles_dispo[liste["salle"]] = liste["salle"]
-            
+                
     choix = int()
     print("_-_-_-_MENU_-_-_-_")
     print()
     while choix != 8:
         print("1. Liste des salles")
         print("2. Réserver une salle")
-        print("3. Detection de conflit")
+        print("3. Détection de conflit")
         print("4. Planning")
         print("5. Voir les créneaux libres")
         print("6. Annuler")
         print("7. Sauvegarde")
         print("8. Quitter")
+        print("9. Affichage de la liste")
         print()
         while True:
             try:
@@ -375,9 +393,9 @@ if __name__=="__main__":
         if choix == 1:
             salles_disponibles()
         if choix == 2:
-            salle, date_saisie, debut, fin = faire_une_reservation()
+            faire_une_reservation()
         if choix == 3:
-            cas_de_conflit()
+            detection_de_conflit()
         if choix == 4:
             voir_le_planning()
         if choix == 5:
@@ -388,3 +406,6 @@ if __name__=="__main__":
             sauvegarder()
         if choix == 8:
             print("____Vous__avez__quitté__le__programme____")
+        if choix == 9:
+            print(ma_liste)
+            print()
