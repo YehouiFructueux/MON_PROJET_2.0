@@ -1,7 +1,19 @@
 
+
 import json
 import os 
- 
+
+ma_liste = []
+
+debut = int()
+fin = int()
+salle = ""
+salles_dispo = {
+    "salle a" : "6 places",
+    "salle b" : "12 places",
+    "salle c" : "4 places"
+}
+
 def sauvegarder():
     with open("reservations.json", "w", encoding="utf-8") as fichier:
         json.dump(ma_liste, fichier, indent = 4, ensure_ascii = False)
@@ -14,24 +26,16 @@ def charger():
             ma_liste = json.load(fichier)         
            
             # __________LISTE__DES__SALLES__________
-debut = int()
-fin = int()
-salle = ""
-salles_dispo = {}
+
+
 def salles_disponibles():
     global salles_dispo
-    salles_dispo = {} 
     print()
     print("_-_-_-_SALLES DISPONIBLES_-_-_-_")
     print()
-    
-    if ma_liste == []:
-        print()
-    for liste in ma_liste:
-        if liste['salle'] not in salles_dispo:
-            salles_dispo[liste['salle']] = liste['salle']
-            print(f"{liste['salle']}: {liste['places']} places")
+    print(salles_dispo)
     print()
+    
 
 def faire_une_reservation():
     global date_saisie
@@ -42,7 +46,7 @@ def faire_une_reservation():
 #                     # ___________CHOISIR_UNE_SALLE__________        
   
     while True:
-        salle = input("Choisissez votre salle: ").strip()
+        salle = input("Choisissez votre salle: ").strip().lower()
         if salle.isdigit():
             print("Salle ne peut pas être un entier")
         elif salle == "":
@@ -102,7 +106,7 @@ def faire_une_reservation():
             m = heure_saisie.minute
             fin = h * 60 + m
 
-            if debut == fin:
+            if debut <= fin:
                 print("L'heure de fin ne peut pas être identique à l'heure de début.")
                 continue
             break
@@ -167,7 +171,9 @@ def cas_de_conflit(salle, date_saisie, debut, fin):
     return conflit
 
 def detection_de_conflit():
+    print()
     print("-------DETECTION_DE_CONFLIT--------")
+    print()
     salle = input("Choisissez votre salle: ").strip()
     date_saisie = input("Entrez la date (AAAA-MM-JJ): ").strip()
     debut = input("Entrez l'heure de début (HH:MM): ").strip()
@@ -216,7 +222,7 @@ def voir_le_planning():
         date_liste = datetime.strptime(liste['date'], "%Y-%m-%d").date()
 
         if liste['salle'] == salle and date_liste == date_saisie:
-            compteur =+ 1
+            compteur += 1
             print(liste)
         else:
             continue
@@ -275,6 +281,8 @@ def afficher_creneaux_libres():
         print(f"{debut_creneau / 60}h à {fermeture / 60}h")
 print()
 
+                        # _________annuler_une_reservation________
+                         
 def annuler_une_reservation():
     while True:
             salle = input("Entrez la salle de la reservation: ").strip()
@@ -307,7 +315,6 @@ def annuler_une_reservation():
     h = heure_saisie.hour
     m = heure_saisie.minute
     debut = h*60 + m
-    # reservation["debut"] = debut
     print()
                 
     while True:
@@ -318,14 +325,13 @@ def annuler_une_reservation():
             m = heure_saisie.minute
             fin = h * 60 + m
 
-            if debut == fin:
+            if debut <= fin:
                 print("L'heure de fin ne peut pas être identique à l'heure de début.")
                 continue
             break
         except ValueError:
             print("Format incorrecte. Veuillez réessayer")
     
-        # reservation["fin"] = fin
     print()
         
     trouve = False
@@ -353,16 +359,7 @@ def annuler_une_reservation():
 
                         # __________MENU__________
 if __name__=="__main__":
-    def sauvegarder():
-        with open("reservations.json", "w", encoding="utf-8") as fichier:
-            json.dump(ma_liste, fichier, indent = 4, ensure_ascii = False)
-            print("Sauvegarde effectuée.")
-
-    def charger():
-        global ma_liste
-        if os.path.exists("reservations.json"):
-            with open("reservations.json", "r", encoding="utf-8") as fichier:
-                ma_liste = json.load(fichier)
+    
     charger()
                 
     choix = int()
